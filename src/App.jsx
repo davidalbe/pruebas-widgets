@@ -13,9 +13,9 @@ export default function MapView() {
     <div style={{ padding: '2rem' }}>
       <div
         style={{
-          width: '70vw',
-          height: '70vh',
-          maxWidth: '900px',
+          width: '75vw',
+          height: '75vh',
+          maxWidth: '800px',
           borderRadius: 16,
           overflow: 'hidden',
           boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
@@ -27,9 +27,9 @@ export default function MapView() {
           mapLib={maplibregl}
           mapStyle={STYLE_URL}
           initialViewState={{
-            longitude: 17.65431710431244,
-            latitude: 32.954120326746775,
-            zoom: 0.8619833357855968
+            longitude: 14,
+            latitude: 50,
+            zoom: 3.5
           }}
           style={{ width: '100%', height: '100%' }}
           onLoad={() => {
@@ -49,8 +49,8 @@ export default function MapView() {
           touchZoomRotate={false}
           keyboard={false}
           boxZoom={false}
-          minZoom={0.8619833357855968}
-          maxZoom={0.8619833357855968}
+          minZoom={3.5}
+          maxZoom={3.5}
         >
           <ScaleControl position="bottom-left" />
         </Map>
