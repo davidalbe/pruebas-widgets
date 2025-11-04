@@ -17,7 +17,28 @@ export default function MapEurope() {
   const [styleLoaded, setStyleLoaded] = useState(false);
   const mapRef = useRef(null);
 
-  // Cargar GeoJSON y añadir propiedad 'score' (-3..+3)
+  const stringToColor = (value) => {
+    const key = value ?? '';
+    let hash = 0;
+    for (let i = 0; i < key.length; i += 1) {
+      hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    const saturation = 65;
+    const lightness = 60;
+
+    const h = hue;
+    const s = saturation / 100;
+    const l = lightness / 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    const toHex = (x) => Math.round(x * 255).toString(16).padStart(2, '0');
+
+    return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+  };
+
+  // Cargar GeoJSON y añadir un color único por país
   useEffect(() => {
     const load = async () => {
       let geo = null;
@@ -31,17 +52,21 @@ export default function MapEurope() {
         console.error('No se pudo cargar countries.geojson');
         return;
       }
-      const withScores = {
+      const withColors = {
         ...geo,
-        features: geo.features.map(f => ({
-          ...f,
-          properties: {
-            ...f.properties,
-            score: Math.floor(Math.random() * 7) - 3
-          }
-        }))
+        features: geo.features.map((f, index) => {
+          const identifier =
+            f.properties?.iso_a3 || f.properties?.iso_n3 || f.properties?.name || String(index);
+          return {
+            ...f,
+            properties: {
+              ...f.properties,
+              color: stringToColor(identifier)
+            }
+          };
+        })
       };
-      setWorldData(withScores);
+      setWorldData(withColors);
     };
     load();
   }, []);
@@ -72,7 +97,7 @@ export default function MapEurope() {
           position: 'relative'
         }}
       >
-        {/* Leyenda */}
+        {/* Nota */}
         <div
           style={{
             position: 'absolute', zIndex: 2, top: 12, right: 12,
@@ -81,16 +106,8 @@ export default function MapEurope() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
           }}
         >
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Score país</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', gap: 6 }}>
-            <div style={{ width: 16, height: 10, background: '#8b0000' }} /> <span>−3</span>
-            <div style={{ width: 16, height: 10, background: '#b22222' }} /> <span>−2</span>
-            <div style={{ width: 16, height: 10, background: '#d2691e' }} /> <span>−1</span>
-            <div style={{ width: 16, height: 10, background: '#e6e6e6' }} /> <span>0</span>
-            <div style={{ width: 16, height: 10, background: '#7fbf7f' }} /> <span>+1</span>
-            <div style={{ width: 16, height: 10, background: '#2e8b57' }} /> <span>+2</span>
-            <div style={{ width: 16, height: 10, background: '#006400' }} /> <span>+3</span>
-          </div>
+          <div style={{ fontWeight: 600, marginBottom: 4 }}>Mapa por país</div>
+          <div>Cada país se muestra con un color único.</div>
         </div>
 
         {/* Carga del estilo propio */}
