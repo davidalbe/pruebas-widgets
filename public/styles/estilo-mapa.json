@@ -536,10 +536,55 @@
 ],
 "bearing": 0,
 "sources": {
-"maplibre": {
-"url": "https://demotiles.maplibre.org/tiles/tiles.json",
-"type": "vector"
-},
+    "maplibre": {
+      "type": "vector",
+      "tiles": [
+        "https://demotiles.maplibre.org/tiles/{z}/{x}/{y}.pbf"
+      ],
+      "minzoom": 0,
+      "maxzoom": 6,
+      "bounds": [
+        -180,
+        -85.0511287798066,
+        180,
+        85.0511287798066
+      ],
+      "center": [
+        0,
+        0
+      ],
+      "attribution": "© MapLibre, Natural Earth",
+      "vector_layers": [
+        {
+          "id": "countries",
+          "minzoom": 0,
+          "maxzoom": 6,
+          "fields": {
+            "ADM0_A3": "ISO 3166-1 alpha-3 country code",
+            "NAME": "Country name",
+            "ABBREV": "Country abbreviation"
+          }
+        },
+        {
+          "id": "geolines",
+          "minzoom": 0,
+          "maxzoom": 6,
+          "fields": {
+            "name": "Line name"
+          }
+        },
+        {
+          "id": "centroids",
+          "minzoom": 0,
+          "maxzoom": 6,
+          "fields": {
+            "NAME": "Country name",
+            "ABBREV": "Country abbreviation",
+            "ADM0_A3": "ISO 3166-1 alpha-3 country code"
+          }
+        }
+      ]
+    },
 "crimea": {
 "type": "geojson",
 "data": {
