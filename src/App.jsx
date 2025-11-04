@@ -1,6 +1,6 @@
 // src/MapEurope.jsx
 import React, { useEffect, useRef, useState } from 'react';
-import Map, { Marker, Popup, ScaleControl } from 'react-map-gl';
+import Map, { ScaleControl } from 'react-map-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import maplibregl from 'maplibre-gl';
 
@@ -13,15 +13,9 @@ const FALLBACK_GEOJSON =
   'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json';
 
 export default function MapEurope() {
-  const [selected, setSelected] = useState(null);
   const [worldData, setWorldData] = useState(null);
   const [styleLoaded, setStyleLoaded] = useState(false);
   const mapRef = useRef(null);
-
-  const cities = [
-    { id: 1, name: 'Madrid',    lat: 40.4168, lng: -3.7038, info: 'Capital de España' },
-    { id: 2, name: 'Barcelona', lat: 41.3874, lng:  2.1686, info: 'Ciudad Condal' }
-  ];
 
   // Cargar GeoJSON y añadir propiedad 'value' (0..100)
   useEffect(() => {
@@ -145,41 +139,6 @@ export default function MapEurope() {
         >
           <ScaleControl position="bottom-left" />
 
-          {/* Capas temáticas dinámicas (relleno y contorno) */}
-          {cities.map((c) => (
-            <Marker
-              key={c.id}
-              longitude={c.lng}
-              latitude={c.lat}
-              anchor="bottom"
-              onClick={(e) => {
-                e.originalEvent.stopPropagation();
-                setSelected(c);
-              }}
-            >
-              <div
-                title={c.name}
-                style={{
-                  width: 14, height: 14, borderRadius: '50%',
-                  background: '#1e90ff', border: '2px solid #fff',
-                  boxShadow: '0 0 0 2px rgba(30,144,255,0.25)', cursor: 'pointer'
-                }}
-              />
-            </Marker>
-          ))}
-
-          {selected && (
-            <Popup
-              longitude={selected.lng}
-              latitude={selected.lat}
-              anchor="top"
-              onClose={() => setSelected(null)}
-              closeOnClick={false}
-            >
-              <strong>{selected.name}</strong>
-              <div style={{ fontSize: 12 }}>{selected.info}</div>
-            </Popup>
-          )}
         </Map>
       </div>
     </div>
