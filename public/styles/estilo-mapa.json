@@ -1,0 +1,69 @@
+{
+  "version": 8,
+  "name": "Mi Estilo",
+  "sprite": "https://demotiles.maplibre.org/styles/osm-bright-gl-style/sprite",
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "sources": {
+    "maplibre": { "type": "vector", "url": "https://demotiles.maplibre.org/tiles/tiles.json" },
+    "countries": { "type": "geojson", "data": "/countries.geojson" }
+  },
+  "layers": [
+    { "id": "background", "type": "background",
+      "paint": { "background-color": "#fefae0" } },
+
+    { "id": "coastline", "type": "line", "source": "maplibre", "source-layer": "countries",
+      "layout": { "line-cap": "round", "line-join": "round" },
+      "paint": {
+        "line-color": "#4a4e69",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 0, 1, 6, 3, 10, 6]
+      }
+    },
+
+    { "id": "countries-boundary", "type": "line", "source": "maplibre", "source-layer": "countries",
+      "paint": { "line-color": "#FFFFFF", "line-width": 1.2 } },
+
+    { "id": "countries-fill", "type": "fill", "source": "countries",
+      "paint": {
+        "fill-color": [
+          "interpolate", ["linear"], ["coalesce", ["get","score"], 0],
+          -3, "#8b0000", -2, "#b22222", -1, "#d2691e",
+           0, "#e6e6e6",  1, "#7fbf7f",  2, "#2e8b57",  3, "#006400"
+        ],
+        "fill-opacity": 0.9
+      }
+    },
+
+    { "id": "geolines", "type": "line", "source": "maplibre", "source-layer": "geolines",
+      "filter": ["!=", ["get","name"], "International Date Line"],
+      "paint": { "line-color": "#1077B0", "line-dasharray": [3,3] } },
+
+    { "id": "geolines-label", "type": "symbol", "source": "maplibre", "source-layer": "geolines",
+      "layout": {
+        "text-field": ["get","name"],
+        "text-font": ["Open Sans Semibold"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 2, 12, 6, 16],
+        "symbol-placement": "line"
+      },
+      "paint": {
+        "text-color": "#1077B0",
+        "text-halo-color": "#FFFFFF",
+        "text-halo-width": 1
+      }
+    },
+
+    { "id": "countries-label", "type": "symbol", "source": "maplibre", "source-layer": "centroids",
+      "minzoom": 2,
+      "layout": {
+        "text-field": ["step", ["zoom"], ["get","ABBREV"], 4, ["get","NAME"]],
+        "text-font": ["Open Sans Semibold"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 2, 10, 6, 16],
+        "text-transform": ["step", ["zoom"], "uppercase", 2, "none"]
+      },
+      "paint": {
+        "text-color": "#08254D",
+        "text-halo-color": "#FFFFFF",
+        "text-halo-width": ["interpolate", ["linear"], ["zoom"], 2, 1, 6, 1.6]
+      }
+    }
+  ]
+}

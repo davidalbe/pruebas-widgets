@@ -1,0 +1,43 @@
+{
+  "name": "mi-proyecto-nivo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@nivo/bump": "^0.99.0",
+    "@nivo/core": "^0.99.0",
+    "@nivo/heatmap": "^0.99.0",
+    "@nivo/line": "^0.99.0",
+    "@nivo/radial-bar": "^0.99.0",
+    "@nivo/scatterplot": "^0.99.0",
+    "apexcharts": "^5.3.4",
+    "d3": "^7.9.0",
+    "d3-scale": "^4.0.2",
+    "html-to-image": "^1.11.13",
+    "mapbox-gl": "^3.16.0",
+    "maplibre-gl": "^5.10.0",
+    "react": "^19.1.0",
+    "react-apexcharts": "^1.7.0",
+    "react-dom": "^19.1.0",
+    "react-error-boundary": "^6.0.0",
+    "react-map-gl": "https://registry.npmjs.org/react-map-gl/-/react-map-gl-7.1.7.tgz"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.5.2",
+    "@vitejs/plugin-react-swc": "^3.9.0",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "vite": "^6.3.5"
+  }
+}
