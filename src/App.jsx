@@ -1,6 +1,6 @@
 // src/MapEurope.jsx
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Map, { Marker, Popup, ScaleControl, Source, Layer } from 'react-map-gl';
+import React, { useEffect, useRef, useState } from 'react';
+import Map, { Marker, Popup, ScaleControl } from 'react-map-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import maplibregl from 'maplibre-gl';
 
@@ -52,25 +52,35 @@ export default function MapEurope() {
     load();
   }, []);
 
-  // Pintura para relleno por valor
-  const fillPaint = useMemo(() => ({
-    'fill-color': [
-      'interpolate', ['linear'], ['get', 'value'],
-      0, '#8b0000',
-      25, '#b22222',
-      50, '#e6e6e6',
-      75, '#2e8b57',
-      100, '#006400'
-    ],
-    'fill-opacity': 0.9,
-    'fill-antialias': true
-  }), []);
+  // Aplicar la rampa de color sobre el estilo base cuando el mapa y los datos estén listos
+  useEffect(() => {
+    if (!styleLoaded || !worldData) { return; }
 
-  // Pintura para contorno
-  const outlinePaint = useMemo(() => ({
-    'line-color': 'rgba(0,0,0,0.25)',
-    'line-width': 0.5
-  }), []);
+    const map = mapRef.current?.getMap();
+    if (!map) { return; }
+
+    const baseSource = map.getSource('countries');
+    if (baseSource && typeof baseSource.setData === 'function') {
+      baseSource.setData(worldData);
+    }
+
+    if (map.getLayer('countries-fill')) {
+      map.setPaintProperty('countries-fill', 'fill-color', [
+        'interpolate', ['linear'], ['get', 'value'],
+        0, '#8b0000',
+        25, '#b22222',
+        50, '#e6e6e6',
+        75, '#2e8b57',
+        100, '#006400'
+      ]);
+      map.setPaintProperty('countries-fill', 'fill-opacity', 0.9);
+    }
+
+    if (map.getLayer('countries-boundary')) {
+      map.setPaintProperty('countries-boundary', 'line-color', 'rgba(0,0,0,0.25)');
+      map.setPaintProperty('countries-boundary', 'line-width', 0.5);
+    }
+  }, [styleLoaded, worldData]);
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -136,23 +146,6 @@ export default function MapEurope() {
           <ScaleControl position="bottom-left" />
 
           {/* Capas temáticas dinámicas (relleno y contorno) */}
-          {styleLoaded && worldData && (
-            <Source id="countries-src" type="geojson" data={worldData}>
-              <Layer
-                id="countries-fill-dynamic"
-                type="fill"
-                paint={fillPaint}
-                beforeId="countries-label" // ajusta si tu estilo no tiene esta capa
-              />
-              <Layer
-                id="countries-outline-dynamic"
-                type="line"
-                paint={outlinePaint}
-                beforeId="countries-label"
-              />
-            </Source>
-          )}
-
           {cities.map((c) => (
             <Marker
               key={c.id}
