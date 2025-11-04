@@ -23,7 +23,7 @@ export default function MapEurope() {
     { id: 2, name: 'Barcelona', lat: 41.3874, lng:  2.1686, info: 'Ciudad Condal' }
   ];
 
-  // Cargar GeoJSON y añadir propiedad 'score' (-3..+3)
+  // Cargar GeoJSON y añadir propiedad 'value' (0..100)
   useEffect(() => {
     const load = async () => {
       let geo = null;
@@ -37,32 +37,30 @@ export default function MapEurope() {
         console.error('No se pudo cargar countries.geojson');
         return;
       }
-      const withScores = {
+      const withValues = {
         ...geo,
         features: geo.features.map(f => ({
           ...f,
           properties: {
             ...f.properties,
-            score: Math.floor(Math.random() * 7) - 3
+            value: Math.floor(Math.random() * 101)
           }
         }))
       };
-      setWorldData(withScores);
+      setWorldData(withValues);
     };
     load();
   }, []);
 
-  // Pintura para relleno por score
+  // Pintura para relleno por valor
   const fillPaint = useMemo(() => ({
     'fill-color': [
-      'interpolate', ['linear'], ['get', 'score'],
-      -3, '#8b0000',
-      -2, '#b22222',
-      -1, '#d2691e',
-       0, '#e6e6e6',
-       1, '#7fbf7f',
-       2, '#2e8b57',
-       3, '#006400'
+      'interpolate', ['linear'], ['get', 'value'],
+      0, '#8b0000',
+      25, '#b22222',
+      50, '#e6e6e6',
+      75, '#2e8b57',
+      100, '#006400'
     ],
     'fill-opacity': 0.9,
     'fill-antialias': true
@@ -73,18 +71,6 @@ export default function MapEurope() {
     'line-color': 'rgba(0,0,0,0.25)',
     'line-width': 0.5
   }), []);
-
-  // Reasignar valores aleatorios (demo)
-  const randomizeScores = () => {
-    if (!worldData) return;
-    setWorldData({
-      ...worldData,
-      features: worldData.features.map(f => ({
-        ...f,
-        properties: { ...f.properties, score: Math.floor(Math.random() * 7) - 3 }
-      }))
-    });
-  };
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -99,18 +85,6 @@ export default function MapEurope() {
           position: 'relative'
         }}
       >
-        <button
-          onClick={randomizeScores}
-          style={{
-            position: 'absolute', zIndex: 2, top: 12, left: 12,
-            padding: '6px 10px', borderRadius: 10, border: '1px solid #ddd',
-            background: '#fff', fontSize: 12, cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
-          }}
-        >
-          Reasignar valores
-        </button>
-
         {/* Leyenda */}
         <div
           style={{
@@ -120,15 +94,13 @@ export default function MapEurope() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
           }}
         >
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Score país</div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>Valor país</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', gap: 6 }}>
-            <div style={{ width: 16, height: 10, background: '#8b0000' }} /> <span>−3</span>
-            <div style={{ width: 16, height: 10, background: '#b22222' }} /> <span>−2</span>
-            <div style={{ width: 16, height: 10, background: '#d2691e' }} /> <span>−1</span>
-            <div style={{ width: 16, height: 10, background: '#e6e6e6' }} /> <span>0</span>
-            <div style={{ width: 16, height: 10, background: '#7fbf7f' }} /> <span>+1</span>
-            <div style={{ width: 16, height: 10, background: '#2e8b57' }} /> <span>+2</span>
-            <div style={{ width: 16, height: 10, background: '#006400' }} /> <span>+3</span>
+            <div style={{ width: 16, height: 10, background: '#8b0000' }} /> <span>0</span>
+            <div style={{ width: 16, height: 10, background: '#b22222' }} /> <span>25</span>
+            <div style={{ width: 16, height: 10, background: '#e6e6e6' }} /> <span>50</span>
+            <div style={{ width: 16, height: 10, background: '#2e8b57' }} /> <span>75</span>
+            <div style={{ width: 16, height: 10, background: '#006400' }} /> <span>100</span>
           </div>
         </div>
 
@@ -139,7 +111,18 @@ export default function MapEurope() {
           mapStyle={STYLE_URL}
           initialViewState={{ longitude: 12.78728, latitude: 49.342414, zoom: 3.5 }}
           style={{ width: '100%', height: '100%' }}
-          onLoad={() => setStyleLoaded(true)}
+          onLoad={() => {
+            setStyleLoaded(true);
+            const map = mapRef.current?.getMap();
+            if (map) {
+              const labelLayers = ['countries-label', 'country-label', 'country-labels'];
+              labelLayers.forEach((layerId) => {
+                if (map.getLayer(layerId)) {
+                  map.setLayoutProperty(layerId, 'visibility', 'none');
+                }
+              });
+            }
+          }}
           dragPan={false}
           dragRotate={false}
           scrollZoom={false}
