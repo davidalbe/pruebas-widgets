@@ -4,13 +4,7 @@ import Map, { Marker, Popup, ScaleControl, Source, Layer } from 'react-map-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import maplibregl from 'maplibre-gl';
 
-// URL del estilo propio (servido desde /public/styles/estilo-mapa.json)
-const STYLE_URL = '/styles/estilo-mapa.json';
-
-// Datos GeoJSON (local -> fallback)
-const LOCAL_GEOJSON = '/countries.geojson';
-const FALLBACK_GEOJSON =
-  'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json';
+import { mapConfig } from './config/mapConfig';
 
 export default function MapEurope() {
   const [selected, setSelected] = useState(null);
@@ -18,16 +12,29 @@ export default function MapEurope() {
   const [styleLoaded, setStyleLoaded] = useState(false);
   const mapRef = useRef(null);
 
-  const cities = [
-    { id: 1, name: 'Madrid',    lat: 40.4168, lng: -3.7038, info: 'Capital de España' },
-    { id: 2, name: 'Barcelona', lat: 41.3874, lng:  2.1686, info: 'Ciudad Condal' }
-  ];
+  const { cities = [] } = mapConfig;
+
+  const legendTitle = mapConfig.legend?.title ?? 'Leyenda';
+  const legendItems = Array.isArray(mapConfig.legend?.items) ? mapConfig.legend.items : [];
+
+  const defaultRange = { min: -3, max: 3 };
+  const configRange = mapConfig.randomScoreRange || defaultRange;
+  const rangeMin = Number.isFinite(configRange.min) ? configRange.min : defaultRange.min;
+  const maxCandidate = Number.isFinite(configRange.max) ? configRange.max : defaultRange.max;
+  const rangeMax = maxCandidate < rangeMin ? rangeMin : maxCandidate;
+  const scoreRange = { min: rangeMin, max: rangeMax };
+  const geoJsonSources = Array.isArray(mapConfig.geoJsonSources)
+    ? mapConfig.geoJsonSources
+    : mapConfig.geoJsonSources
+    ? [mapConfig.geoJsonSources]
+    : [];
+  const geoJsonKey = geoJsonSources.join('|');
 
   // Cargar GeoJSON y añadir propiedad 'score' (-3..+3)
   useEffect(() => {
     const load = async () => {
       let geo = null;
-      for (const url of [LOCAL_GEOJSON, FALLBACK_GEOJSON]) {
+      for (const url of geoJsonSources) {
         try {
           const r = await fetch(url, { cache: 'no-store' });
           if (r.ok) { geo = await r.json(); break; }
@@ -43,35 +50,36 @@ export default function MapEurope() {
           ...f,
           properties: {
             ...f.properties,
-            score: Math.floor(Math.random() * 7) - 3
+            score: Math.floor(
+              Math.random() * (scoreRange.max - scoreRange.min + 1)
+            ) + scoreRange.min
           }
         }))
       };
       setWorldData(withScores);
     };
     load();
-  }, []);
+  }, [geoJsonKey, scoreRange.max, scoreRange.min]);
 
   // Pintura para relleno por score
-  const fillPaint = useMemo(() => ({
-    'fill-color': [
-      'interpolate', ['linear'], ['get', 'score'],
-      -3, '#8b0000',
-      -2, '#b22222',
-      -1, '#d2691e',
-       0, '#e6e6e6',
-       1, '#7fbf7f',
-       2, '#2e8b57',
-       3, '#006400'
-    ],
-    'fill-opacity': 0.9,
-    'fill-antialias': true
-  }), []);
+  const fillPaint = useMemo(() => {
+    const stops = mapConfig.fillLayer?.colorStops || [];
+    const baseExpression = ['interpolate', ['linear'], ['get', 'score']];
+    const colorExpression = stops.length
+      ? stops.reduce((expr, stop) => expr.concat([stop.score, stop.color]), baseExpression)
+      : mapConfig.fillLayer?.defaultColor ?? '#cccccc';
+
+    return {
+      'fill-color': colorExpression,
+      'fill-opacity': mapConfig.fillLayer?.opacity ?? 0.9,
+      'fill-antialias': mapConfig.fillLayer?.antialias ?? true
+    };
+  }, []);
 
   // Pintura para contorno
   const outlinePaint = useMemo(() => ({
-    'line-color': 'rgba(0,0,0,0.25)',
-    'line-width': 0.5
+    'line-color': mapConfig.outlineLayer?.color ?? 'rgba(0,0,0,0.25)',
+    'line-width': mapConfig.outlineLayer?.width ?? 0.5
   }), []);
 
   // Reasignar valores aleatorios (demo)
@@ -81,10 +89,20 @@ export default function MapEurope() {
       ...worldData,
       features: worldData.features.map(f => ({
         ...f,
-        properties: { ...f.properties, score: Math.floor(Math.random() * 7) - 3 }
+        properties: {
+          ...f.properties,
+          score:
+            Math.floor(Math.random() * (scoreRange.max - scoreRange.min + 1)) +
+            scoreRange.min
+        }
       }))
     });
   };
+
+  const layerBeforeIdFill = mapConfig.fillLayer?.beforeLayerId || undefined;
+  const layerBeforeIdOutline = mapConfig.outlineLayer?.beforeLayerId || undefined;
+
+  const interactionProps = mapConfig.interactionOptions || {};
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -120,15 +138,14 @@ export default function MapEurope() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
           }}
         >
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Score país</div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>{legendTitle}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', gap: 6 }}>
-            <div style={{ width: 16, height: 10, background: '#8b0000' }} /> <span>−3</span>
-            <div style={{ width: 16, height: 10, background: '#b22222' }} /> <span>−2</span>
-            <div style={{ width: 16, height: 10, background: '#d2691e' }} /> <span>−1</span>
-            <div style={{ width: 16, height: 10, background: '#e6e6e6' }} /> <span>0</span>
-            <div style={{ width: 16, height: 10, background: '#7fbf7f' }} /> <span>+1</span>
-            <div style={{ width: 16, height: 10, background: '#2e8b57' }} /> <span>+2</span>
-            <div style={{ width: 16, height: 10, background: '#006400' }} /> <span>+3</span>
+            {legendItems.map((item, index) => (
+              <React.Fragment key={item?.score ?? index}>
+                <div style={{ width: 16, height: 10, background: item?.color ?? '#000' }} />
+                <span>{item?.label ?? item?.score ?? ''}</span>
+              </React.Fragment>
+            ))}
           </div>
         </div>
 
@@ -136,19 +153,11 @@ export default function MapEurope() {
         <Map
           ref={mapRef}
           mapLib={maplibregl}
-          mapStyle={STYLE_URL}
-          initialViewState={{ longitude: 12.78728, latitude: 49.342414, zoom: 3.5 }}
+          mapStyle={mapConfig.mapStyle}
+          initialViewState={mapConfig.initialViewState}
           style={{ width: '100%', height: '100%' }}
           onLoad={() => setStyleLoaded(true)}
-          dragPan={false}
-          dragRotate={false}
-          scrollZoom={false}
-          doubleClickZoom={false}
-          touchZoomRotate={false}
-          keyboard={false}
-          boxZoom={false}
-          minZoom={3.5}
-          maxZoom={3.5}
+          {...interactionProps}
         >
           <ScaleControl position="bottom-left" />
 
@@ -159,13 +168,13 @@ export default function MapEurope() {
                 id="countries-fill-dynamic"
                 type="fill"
                 paint={fillPaint}
-                beforeId="countries-label" // ajusta si tu estilo no tiene esta capa
+                beforeId={layerBeforeIdFill}
               />
               <Layer
                 id="countries-outline-dynamic"
                 type="line"
                 paint={outlinePaint}
-                beforeId="countries-label"
+                beforeId={layerBeforeIdOutline}
               />
             </Source>
           )}
