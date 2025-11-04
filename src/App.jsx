@@ -17,7 +17,7 @@ export default function MapEurope() {
   const [styleLoaded, setStyleLoaded] = useState(false);
   const mapRef = useRef(null);
 
-  // Cargar GeoJSON y añadir propiedad 'value' (0..100)
+  // Cargar GeoJSON y añadir propiedad 'score' (-3..+3)
   useEffect(() => {
     const load = async () => {
       let geo = null;
@@ -31,22 +31,22 @@ export default function MapEurope() {
         console.error('No se pudo cargar countries.geojson');
         return;
       }
-      const withValues = {
+      const withScores = {
         ...geo,
         features: geo.features.map(f => ({
           ...f,
           properties: {
             ...f.properties,
-            value: Math.floor(Math.random() * 101)
+            score: Math.floor(Math.random() * 7) - 3
           }
         }))
       };
-      setWorldData(withValues);
+      setWorldData(withScores);
     };
     load();
   }, []);
 
-  // Aplicar la rampa de color sobre el estilo base cuando el mapa y los datos estén listos
+  // Inyectar los datos en la fuente del estilo base cuando el mapa y los datos estén listos
   useEffect(() => {
     if (!styleLoaded || !worldData) { return; }
 
@@ -56,23 +56,6 @@ export default function MapEurope() {
     const baseSource = map.getSource('countries');
     if (baseSource && typeof baseSource.setData === 'function') {
       baseSource.setData(worldData);
-    }
-
-    if (map.getLayer('countries-fill')) {
-      map.setPaintProperty('countries-fill', 'fill-color', [
-        'interpolate', ['linear'], ['get', 'value'],
-        0, '#8b0000',
-        25, '#b22222',
-        50, '#e6e6e6',
-        75, '#2e8b57',
-        100, '#006400'
-      ]);
-      map.setPaintProperty('countries-fill', 'fill-opacity', 0.9);
-    }
-
-    if (map.getLayer('countries-boundary')) {
-      map.setPaintProperty('countries-boundary', 'line-color', 'rgba(0,0,0,0.25)');
-      map.setPaintProperty('countries-boundary', 'line-width', 0.5);
     }
   }, [styleLoaded, worldData]);
 
@@ -98,13 +81,15 @@ export default function MapEurope() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
           }}
         >
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Valor país</div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>Score país</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', gap: 6 }}>
-            <div style={{ width: 16, height: 10, background: '#8b0000' }} /> <span>0</span>
-            <div style={{ width: 16, height: 10, background: '#b22222' }} /> <span>25</span>
-            <div style={{ width: 16, height: 10, background: '#e6e6e6' }} /> <span>50</span>
-            <div style={{ width: 16, height: 10, background: '#2e8b57' }} /> <span>75</span>
-            <div style={{ width: 16, height: 10, background: '#006400' }} /> <span>100</span>
+            <div style={{ width: 16, height: 10, background: '#8b0000' }} /> <span>−3</span>
+            <div style={{ width: 16, height: 10, background: '#b22222' }} /> <span>−2</span>
+            <div style={{ width: 16, height: 10, background: '#d2691e' }} /> <span>−1</span>
+            <div style={{ width: 16, height: 10, background: '#e6e6e6' }} /> <span>0</span>
+            <div style={{ width: 16, height: 10, background: '#7fbf7f' }} /> <span>+1</span>
+            <div style={{ width: 16, height: 10, background: '#2e8b57' }} /> <span>+2</span>
+            <div style={{ width: 16, height: 10, background: '#006400' }} /> <span>+3</span>
           </div>
         </div>
 
