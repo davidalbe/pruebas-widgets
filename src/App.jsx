@@ -82,23 +82,6 @@ export default function MapEurope() {
     'line-width': mapConfig.outlineLayer?.width ?? 0.5
   }), []);
 
-  // Reasignar valores aleatorios (demo)
-  const randomizeScores = () => {
-    if (!worldData) return;
-    setWorldData({
-      ...worldData,
-      features: worldData.features.map(f => ({
-        ...f,
-        properties: {
-          ...f.properties,
-          score:
-            Math.floor(Math.random() * (scoreRange.max - scoreRange.min + 1)) +
-            scoreRange.min
-        }
-      }))
-    });
-  };
-
   const layerBeforeIdFill = mapConfig.fillLayer?.beforeLayerId || undefined;
   const layerBeforeIdOutline = mapConfig.outlineLayer?.beforeLayerId || undefined;
 
@@ -117,18 +100,6 @@ export default function MapEurope() {
           position: 'relative'
         }}
       >
-        <button
-          onClick={randomizeScores}
-          style={{
-            position: 'absolute', zIndex: 2, top: 12, left: 12,
-            padding: '6px 10px', borderRadius: 10, border: '1px solid #ddd',
-            background: '#fff', fontSize: 12, cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
-          }}
-        >
-          Reasignar valores
-        </button>
-
         {/* Leyenda */}
         <div
           style={{

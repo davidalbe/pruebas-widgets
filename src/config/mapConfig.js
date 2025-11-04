@@ -55,10 +55,7 @@ export const mapConfig = {
     { id: 1, name: 'Madrid', lat: 40.4168, lng: -3.7038, info: 'Capital de España' },
     { id: 2, name: 'Barcelona', lat: 41.3874, lng: 2.1686, info: 'Ciudad Condal' },
   ],
-  geoJsonSources: [
-    '/countries.geojson',
-    'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json',
-  ],
+  geoJsonSources: ['/data/europe.geojson'],
 };
 
 export default mapConfig;
